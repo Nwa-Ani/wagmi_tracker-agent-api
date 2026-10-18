@@ -1,0 +1,11 @@
+cache/
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.log
+tunnel.log
+.cloudflared/
+*.pem
+.env
+.env.*

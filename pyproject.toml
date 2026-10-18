@@ -1,0 +1,7 @@
+[project]
+name = "wagmi_tracker"
+version = "0.1.0"
+description = "Early buyer wallet tracker: find a Solana memecoin's first buyers, filter snipers/bots, and score their track records using free keyless data."
+authors = [{ name = "Evo (@heisevo)" }]
+requires-python = ">=3.10"
+dependencies = ["requests>=2.31", "solders>=0.21"]

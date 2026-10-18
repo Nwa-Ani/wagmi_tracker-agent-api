@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: wagmi-tracker
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 -u server.py
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: HOST
+        value: 0.0.0.0
+      - key: CACHE_DIR
+        value: /tmp/wagmi_tracker-cache   # ephemeral on the free plan; it is only a cache
+      - key: HELIUS_API_KEY
+        sync: false                      # set the value in the Render dashboard, never in git
+      # ---- optional keys (all sync:false, set in the dashboard; the app degrades gracefully without them) ----
+      - key: ETHERSCAN_API_KEY          # faster Ethereum history via Etherscan v2 (free plan doesn't cover Base)
+        sync: false
+      - key: ALCHEMY_API_KEY            # optional free key: fast, full Base wallet history (alchemy_getAssetTransfers)
+        sync: false
+      - key: OPENSEA_API_KEY            # NFT floors on Ethereum/Base
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN         # turns on Telegram wallet alerts
+        sync: false
+      - key: XAI_API_KEY                # optional AI roast ("Spicier" button)
+        sync: false
+      - key: BASE_RPC                   # optional custom RPCs
+        sync: false
+      - key: ETH_RPC
+        sync: false
+      - key: ROBINHOOD_RPC
+        sync: false

@@ -1,0 +1,75 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05080a"><title>wagmi_tracker</title><link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="description" content="Your own personal wallet and coin tracker. Anywhere, anytime.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="wagmi_tracker"><meta property="og:title" content="wagmi_tracker"><meta property="og:description" content="Your own personal wallet and coin tracker. Anywhere, anytime."><meta property="og:url" content="https://wagmi-tracker.onrender.com/"><meta property="og:image" content="https://wagmi-tracker.onrender.com/img/banner.jpg"><meta property="og:image:width" content="1280"><meta property="og:image:height" content="720">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="wagmi_tracker"><meta name="twitter:description" content="Your own personal wallet and coin tracker. Anywhere, anytime."><meta name="twitter:image" content="https://wagmi-tracker.onrender.com/img/banner.jpg">
+<link rel="preload" as="image" type="image/webp" href="img/banner-strip-640.webp" media="(max-width:700px)"><link rel="preload" as="image" type="image/webp" href="img/banner-strip.webp" media="(min-width:701px)"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="style.css?v=4"></head><body>
+<div id="gate" class="gate hidden" role="dialog" aria-modal="true" aria-labelledby="gtitle">
+ <div class="gcard">
+  <picture class="hbanner ghbanner"><source type="image/webp" srcset="img/banner-strip-640.webp 640w, img/banner-strip.webp 1280w" sizes="(max-width:700px) 100vw, 680px"><img src="img/banner-strip.jpg" width="1280" height="240" alt="WAGMI" decoding="async"></picture>
+  <p class="tagline">Your own personal <b>wallet</b> and <b>coin</b> tracker. <span class="nw"><b>Anywhere</b>, <b>anytime</b>.</span></p>
+  <h1 id="gtitle">Welcome to <span class="gname">wagmi_tracker</span></h1>
+  <p class="glead">See who bought a coin or minted a collection first, and whether a wallet is worth following. Solana, Ethereum, Base, Robinhood Chain and Bitcoin.</p>
+  <div class="gfeat">
+   <div><b>🪙 Scan a coin or NFT</b><span>Earliest buyers or minters, minus snipers and bots.</span></div>
+   <div><b>👛 Check a wallet</b><span>Win rate, timing and hold time, plus Wrapped, Roast and more.</span></div>
+   <div><b>🚦 Get a verdict</b><span><i class="vg">Copy it</i>, <i class="vy">Watch for alpha</i> or <i class="vr">Skip</i>, with a confidence level.</span></div>
+  </div>
+  <p class="gsmall">Public on-chain data. All numbers are estimates.</p>
+  <div class="nfa">
+   <div class="nfah">⚠️ Not Financial Advice</div>
+   <ul>
+    <li>Nothing here is financial, investment or trading advice.</li>
+    <li>Memecoins and NFTs are highly risky. You can lose everything you put in.</li>
+    <li>Following, copying or trading any wallet or token shown here is entirely your own decision and at your own risk.</li>
+    <li>Data may be wrong, delayed or incomplete. There are no guarantees of any kind.</li>
+    <li>Never share your seed phrase or private key with anyone. This site will never ask you to connect a wallet.</li>
+   </ul>
+  </div>
+  <details class="terms"><summary>Read the Terms of Use</summary>
+   <ol>
+    <li><b>What this is.</b> wagmi_tracker is an informational research tool. It reads public blockchain and market data and shows estimates and simple rule-based labels.</li>
+    <li><b>No advice.</b> Labels such as "Copy it", "Watch for alpha" and "Skip" are automated opinions based on limited data. They are not recommendations to buy, sell, hold or copy anything.</li>
+    <li><b>Your responsibility.</b> You are solely responsible for your own decisions, trades and any losses. Do your own research and only risk what you can afford to lose.</li>
+    <li><b>No guarantees.</b> The tool is provided "as is", without warranties of any kind. Results can be inaccurate, incomplete, out of date or unavailable at any time.</li>
+    <li><b>Third-party data.</b> Data comes from public services such as Solana and EVM RPC providers, Helius, Routescan, DexScreener, GeckoTerminal, OpenSea, Magic Eden, mempool.space and ordinals.com. We do not control them and are not responsible for their content.</li>
+    <li><b>No custody.</b> The site never asks for your seed phrase, private key or a wallet connection, and never holds your funds. Anyone asking for these in our name is a scammer.</li>
+    <li><b>Limitation of liability.</b> To the fullest extent allowed by law, the creator is not liable for any loss or damage from using, or relying on, this tool.</li>
+    <li><b>Alerts and fun features.</b> Telegram alerts, roasts, scores and simulations are automated estimates for entertainment and research. Alerts can be late or missed.</li>
+    <li><b>Fair use.</b> Do not abuse the service, overload it or use it for anything illegal.</li>
+    <li><b>Changes.</b> These terms may change. If they do, you will be asked to accept them again.</li>
+   </ol>
+  </details>
+  <label class="accept"><input type="checkbox" id="gaccept"> <span>I understand and accept the Terms of Use</span></label>
+  <button id="genter" class="btn share genter" disabled>Enter wagmi_tracker</button>
+  <div class="gfoot">made by @heisevo</div>
+ </div>
+</div>
+
+<header class="top"><a class="brand" href="/" id="home"><span class="logo">◎</span><span id="appname">wagmi_tracker</span></a>
+ <nav class="menu"><button data-f="radar" title="Smart Money Radar">📡<span> Radar</span></button><button data-f="leaderboard" title="Leaderboard">🏆<span> Leaders</span></button><button data-f="watchlist" title="Watchlist">★<span> Watchlist</span></button><button data-f="alerts" title="Alerts">🔔<span> Alerts</span></button></nav>
+ <a class="credit" id="credit" href="https://x.com/heisevo" target="_blank">by @heisevo</a></header>
+<main>
+<section class="hero">
+  <picture class="hbanner"><source type="image/webp" srcset="img/banner-strip-640.webp 640w, img/banner-strip.webp 1280w" sizes="(max-width:700px) 100vw, 600px"><img src="img/banner-strip.jpg" width="1280" height="240" alt="WAGMI" decoding="async" fetchpriority="high"></picture>
+  <p class="tagline">Your own personal <b>wallet</b> and <b>coin</b> tracker. <span class="nw"><b>Anywhere</b>, <b>anytime</b>.</span></p>
+  <h1 id="headline">Find wallets worth following.</h1>
+  <div class="tabs" role="tablist"><button class="tab on" data-t="token" role="tab">🪙 Scan a coin</button><button class="tab" data-t="wallet" role="tab">👛 Check a wallet</button><span class="slider"></span></div>
+  <div class="pickers"><select id="chain" aria-label="Chain"><option value="sol">◎ Solana</option><option value="eth">⟠ Ethereum</option><option value="base">🔵 Base</option><option value="robinhood">🪶 Robinhood Chain</option><option value="btc">₿ Bitcoin</option></select>
+   <div class="asset" role="group"><button type="button" data-a="coin" class="on">Memecoins</button><button type="button" data-a="nft">NFTs</button></div></div>
+  <form id="search" class="search" autocomplete="off">
+    <input id="q" spellcheck="false" placeholder="Paste a token mint…" aria-label="Address">
+    <button id="go" class="go" type="submit"><span>Scan</span></button>
+  </form>
+  <div class="hint" id="hint"><label class="fresh"><input type="checkbox" id="fresh"> rescan</label><span class="info" tabindex="0" role="note" aria-label="Help" data-tip="Paste any address. We detect the chain and whether it's a coin, collection or wallet. Rescan skips the saved result.">ⓘ</span></div>
+  <div id="toast" class="toast"></div>
+  <div id="recent" class="recent"></div>
+</section>
+<section id="progress" class="progress hidden"><div class="ptop"><span id="pstep">Starting…</span><span id="ppct">0%</span></div><div class="bar"><div id="pfill"></div></div><div class="psub">Partial results appear as they load.</div></section>
+<section id="err" class="errbox hidden"></section>
+<section id="out"></section>
+</main>
+<footer><div>Not financial advice · <a href="#" id="openterms">Terms of Use</a></div><div class="src">Data: Helius · DexScreener · GeckoTerminal · OpenSea · Magic Eden · mempool.space · ordinals.com · public RPCs</div></footer>
+<canvas id="card" width="1200" height="675" class="hidden"></canvas>
+<div id="sheet" class="sheet hidden"></div>
+<script src="/config.js"></script><script src="app.js?v=4"></script></body></html>
