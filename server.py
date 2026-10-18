@@ -2,7 +2,8 @@
 import json, os, re, threading, time, traceback, uuid
 from urllib.parse import parse_qs, urlparse
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
-import core, wallet_check, extras, alerts
+import core, wallet_check, extras, alerts, x402
+import sys
 from chains import evm, sol_nft, btc
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -89,6 +90,20 @@ def detect(a, chain_hint):
     if chain_hint == "btc" and RUNE.match(a): return {"chain": "btc", "kind": "token", "asset": "nft"}
     return {"error": "That doesn't look like a Solana, EVM (0x…) or Bitcoin address."}
 
+def start_job(chain, asset, kind, a, fresh=False):
+    """Start (or join) a scan job and return its id. Shared by the free website API and the paid x402 API."""
+    key = rkey(chain, asset, kind, a)
+    with LOCK:
+        f = result_path(key)
+        if not fresh and f and (f.startswith(SAMPLES) or time.time() - os.path.getmtime(f) < 6 * 3600):
+            jid = uuid.uuid4().hex[:10]; JOBS[jid] = {"state": "done", "status": "Cached result (under 6h old)", "result": json.load(open(f))}
+            return jid
+        jid = BY_KEY.get(key)
+        if jid and JOBS[jid]["state"] == "running": return jid
+        jid = uuid.uuid4().hex[:10]; JOBS[jid] = {"state": "running", "status": "Starting…", "mint": a, "kind": kind, "chain": chain, "asset": asset, "result": None}; BY_KEY[key] = jid
+    threading.Thread(target=run_job, args=(jid, chain, asset, kind, a), daemon=True).start()
+    return jid
+
 CACHE_MEM = {}
 def memo(key, ttl, fn):
     hit = CACHE_MEM.get(key)
@@ -100,6 +115,11 @@ class H(SimpleHTTPRequestHandler):
     def _json(self, obj, code=200):
         b = json.dumps(obj, default=str).encode()
         self.send_response(code); self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+    def _send(self, code, obj, headers=None):
+        b = json.dumps(obj, default=str).encode()
+        self.send_response(code); self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(b)))
+        for k, v in (headers or {}).items(): self.send_header(k, v)
+        self.end_headers(); self.wfile.write(b)
     def end_headers(self):
         if self.path.endswith((".js", ".css", ".html", "/")): self.send_header("Cache-Control", "no-cache")
         super().end_headers()
@@ -109,6 +129,7 @@ class H(SimpleHTTPRequestHandler):
             if p == "/config.js":
                 b = ("window.APP_CONFIG=" + json.dumps({**core.APP, "ROAST_LLM": bool(os.environ.get("XAI_API_KEY"))}) + ";").encode()
                 self.send_response(200); self.send_header("Content-Type", "application/javascript"); self.send_header("Content-Length", str(len(b))); self.end_headers(); return self.wfile.write(b)
+            if p.startswith("/api/x402"): return x402.handle(self, sys.modules[__name__], p, q)
             if p == "/api/detect":
                 d = detect(q.get("addr", ""), q.get("chain", "")); return self._json(d, 400 if d.get("error") else 200)
             if p.startswith("/api/job/"):
@@ -154,22 +175,13 @@ class H(SimpleHTTPRequestHandler):
             if chain in evm.CHAINS: a = a.lower()
             if chain not in CHAINS or asset not in ("coin", "nft") or not validate(chain, asset, kind, a):
                 return self._json({"error": "That address doesn't match the chain you picked."}, 400)
-            key = rkey(chain, asset, kind, a); fresh = body.get("fresh")
-            with LOCK:
-                jid = BY_KEY.get(key)
-                if jid and JOBS[jid]["state"] == "running": return self._json({"job": jid, "key": key})
-                f = result_path(key)
-                if not fresh and f and (f.startswith(SAMPLES) or time.time() - os.path.getmtime(f) < 6 * 3600):
-                    jid = uuid.uuid4().hex[:10]; JOBS[jid] = {"state": "done", "status": "Cached result (under 6h old)", "result": json.load(open(f))}
-                    return self._json({"job": jid, "key": key})
-                jid = uuid.uuid4().hex[:10]; JOBS[jid] = {"state": "running", "status": "Starting…", "mint": a, "kind": kind, "chain": chain, "asset": asset, "result": None}; BY_KEY[key] = jid
-            threading.Thread(target=run_job, args=(jid, chain, asset, kind, a), daemon=True).start()
-            return self._json({"job": jid, "key": key})
+            return self._json({"job": start_job(chain, asset, kind, a, body.get("fresh")), "key": rkey(chain, asset, kind, a)})
         self._json({"error": "not found"}, 404)
     def log_message(self, *a): pass
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8787)); host = os.environ.get("HOST", "0.0.0.0")
     print(f"Data source: {core.RPC_LABEL}"); print(f"Telegram alerts: {'on' if alerts.start() else 'off (set TELEGRAM_BOT_TOKEN)'}")
+    print(f"x402 agent API: {'on, payTo ' + x402.CFG.pay_to + ' via ' + (x402.CFG.facilitator or 'local sponsor') if x402.CFG.enabled else 'off (set X402_PAY_TO)'}")
     print(f"{core.APP['APP_NAME']} on http://localhost:{port}")
     ThreadingHTTPServer((host, port), H).serve_forever()

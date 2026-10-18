@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>wagmi_tracker · Agent API (x402 on Solana devnet)</title><link rel="icon" href="/favicon.ico">
+<style>
+:root{--bg:#06110b;--card:#0c1d13;--line:#1d3a27;--g:#39ff88;--t:#d8f5e3;--m:#7fa58d;--a:#ffc857;--r:#ff6b8b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#0f3a22,transparent),var(--bg);color:var(--t);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 18px 60px}h1{margin:0 0 4px;font-size:26px}h1 b{color:var(--g)}h2{font-size:17px;margin:28px 0 10px;color:var(--g)}
+.sub{color:var(--m);margin:0 0 18px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:12px 0}
+code,pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}pre{background:#03090590;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;margin:8px 0}
+.flow{display:grid;gap:8px}.st{display:flex;gap:12px;align-items:flex-start}.n{flex:0 0 28px;height:28px;border-radius:50%;background:#123b24;color:var(--g);display:grid;place-items:center;font-weight:700}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;border:1px solid var(--line);color:var(--m);font-size:12px;margin-right:6px}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--m);font-weight:500}
+a{color:var(--g)}#cfg code{word-break:break-all}.muted{color:var(--m)}.warn{color:var(--a)}
+</style></head><body><main>
+<h1><b>wagmi_tracker</b> Agent API</h1>
+<p class="sub">Pay-per-call wallet checks and coin scans for AI agents, using <b>x402</b> on <b>Solana devnet</b>. No accounts, no API keys, no subscription. The website itself stays free and never asks you to connect a wallet.</p>
+<div class="card" id="cfg"><span class="muted">Loading price…</span></div>
+<h2>How a paid call works</h2>
+<div class="card flow">
+<div class="st"><div class="n">1</div><div><b>Ask.</b> <code>GET /api/x402/wallet-check?chain=sol&amp;address=…</code> returns <code>402 Payment Required</code> with a <code>PAYMENT-REQUIRED</code> header: price, devnet USDC mint, <code>payTo</code>, the fee sponsor and a signed one-time quote (memo).</div></div>
+<div class="st"><div class="n">2</div><div><b>Pay.</b> The agent signs a Solana transaction with its own key: one SPL <code>TransferChecked</code> to <code>payTo</code> plus a Memo with the quote. The sponsor pays the network fee, so the agent needs only USDC.</div></div>
+<div class="st"><div class="n">3</div><div><b>Verify &amp; settle.</b> The agent retries with <code>PAYMENT-SIGNATURE</code>. The server checks amount, mint, recipient, quote, expiry and replay, then the facilitator settles on Solana and the server re-reads the confirmed transaction from the chain.</div></div>
+<div class="st"><div class="n">4</div><div><b>Deliver.</b> <code>200</code> with the JSON result and a <code>PAYMENT-RESPONSE</code> header carrying the Solana tx signature (or <code>202</code> + a free poll URL while a fresh scan runs).</div></div>
+</div>
+<h2>Try it with the demo agent</h2>
+<pre>python3 agent_demo.py --server <span id="srv">http://localhost:8787</span> --chain sol --address &lt;wallet&gt;
+python3 agent_demo.py ... --fail wrong-amount   # or wrong-mint, wrong-recipient, replay, expired, tampered-quote, garbage, no-funds</pre>
+<h2>Failed payments get a clear reason, never the data</h2>
+<div class="card"><span class="pill">wrong_amount</span><span class="pill">wrong_asset</span><span class="pill">wrong_recipient</span><span class="pill">replayed_payment</span><span class="pill">payment_expired</span><span class="pill">invalid_quote</span><span class="pill">quote_resource_mismatch</span><span class="pill">memo_mismatch</span><span class="pill">invalid_signature</span><span class="pill">insufficient_funds</span><span class="pill">settlement_unconfirmed</span><span class="pill">invalid_payload (400)</span>
+<p class="muted" style="margin:10px 0 0">Bad addresses are refused with 400 <i>before</i> any quote, so nobody pays for invalid input. An unconfirmed payment can be retried with the same header and is never charged twice.</p></div>
+<h2>Recent paid calls (devnet)</h2>
+<div class="card"><table><thead><tr><th>When</th><th>Call</th><th>Payer</th><th>Solana tx</th></tr></thead><tbody id="rows"><tr><td colspan="4" class="muted">No paid calls yet.</td></tr></tbody></table></div>
+<p class="muted">Devnet only: test tokens, no real money. Not financial advice. By <a href="https://x.com/heisevo">@heisevo</a>.</p>
+</main><script>
+const s=a=>a?a.slice(0,4)+"…"+a.slice(-4):"";document.getElementById("srv").textContent=location.origin;
+fetch("/api/x402").then(r=>r.json()).then(c=>{document.getElementById("cfg").innerHTML=c.enabled?
+`<span class="pill">${c.priceDisplay} ${c.assetName}</span><span class="pill">per call</span><span class="pill">Solana devnet</span><span class="pill">${c.settlement}</span><div class="muted" style="margin-top:8px">payTo <code>${c.payTo}</code> · mint <code>${c.asset}</code></div>`:'<span class="warn">The agent API is not enabled on this server.</span>'});
+fetch("/api/x402/recent").then(r=>r.json()).then(d=>{if(!d.paid.length)return;document.getElementById("rows").innerHTML=d.paid.map(p=>
+`<tr><td>${new Date(p.t*1000).toLocaleString()}</td><td>${p.endpoint} · ${p.chain} ${s(p.address)}</td><td><code>${s(p.payer)}</code></td><td><a href="${p.explorer}" target="_blank" rel="noopener">${s(p.tx)} ↗</a></td></tr>`).join("")});
+</script></body></html>

@@ -9,3 +9,7 @@ tunnel.log
 *.pem
 .env
 .env.*
+
+# x402 burner devnet keypairs (never commit)
+.secrets/
+!.env.example
